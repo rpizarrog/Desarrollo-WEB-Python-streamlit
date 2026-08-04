@@ -132,7 +132,8 @@ class MotorIA:
 
     def f_generar_prompt_interpretacion(
             self,
-            contexto):
+            contexto,
+            graficas=None):
         """
         Construye el prompt para interpretar
         estadísticos descriptivos.
@@ -245,8 +246,52 @@ class MotorIA:
             "Genera entre 300 y 450 palabras."
         )        
 
+        #-------------------------------------------------
+        # GRÁFICAS DISPONIBLES
+        #-------------------------------------------------
+
+        if graficas:
+
+            lineas.append("")
+
+            lineas.append(
+                "Además de los estadísticos descriptivos recibirás "
+                "una o varias gráficas de la variable."
+            )
+
+            lineas.append(
+                "Integra la información numérica con la información "
+                "visual antes de emitir conclusiones."
+            )
+
+            lineas.append("")
+
+            lineas.append(
+                "Gráficas disponibles:"
+            )
+
+            for grafica in graficas:
+
+                lineas.append(
+
+                    f"- {grafica['nombre']}"
+
+                )
+
+            lineas.append("")
+
+            lineas.append(
+                "Si observas asimetría, concentración de datos, "
+                "multimodalidad, valores atípicos, dispersión, "
+                "sesgos o desviaciones respecto de la normalidad, "
+                "explícalos relacionando los gráficos con los "
+                "estadísticos descriptivos."
+            )
+
+        lineas.append("")
+
         lineas.append(
-            "Interpreta:"
+            "La interpretación deberá incluir:"
         )
 
         lineas.append(
@@ -273,9 +318,21 @@ class MotorIA:
             "6. Normalidad."
         )
 
-        lineas.append(
-            "7. Conclusión."
-        )
+        if graficas:
+
+            lineas.append(
+                "7. Interpretación integrada de las gráficas."
+            )
+
+            lineas.append(
+                "8. Conclusión."
+            )
+
+        else:
+
+            lineas.append(
+                "7. Conclusión."
+            )
 
         prompt = "\n".join(lineas)
 
@@ -284,22 +341,6 @@ class MotorIA:
 
     #=====================================================
     # ENVIAR CONSULTA
-    #=====================================================
-
-    def f_consultar(
-            self,
-            prompt):
-        """
-        Envía un prompt al proveedor seleccionado.
-
-        Regresa únicamente el texto generado.
-        """
-
-        raise NotImplementedError(
-            "Será implementado en la Parte B."
-        )
-
-    #=====================================================
     # CONSULTAR MODELO
     #=====================================================
 
@@ -400,7 +441,8 @@ class MotorIA:
 
     def f_generar_interpretacion(
             self,
-            contexto):
+            contexto,
+            graficas=None):
         """
         Genera una interpretación de los
         estadísticos descriptivos.
@@ -408,7 +450,8 @@ class MotorIA:
 
         prompt = self.f_generar_prompt_interpretacion(
 
-            contexto
+            contexto,
+            graficas
 
         )
 
@@ -420,18 +463,27 @@ class MotorIA:
 
             )
 
-            return respuesta
+            return {
+
+                "prompt": prompt,
+
+                "respuesta": respuesta
+
+            }
 
         except Exception as e:
 
-            return (
+            return {
 
-                "No fue posible generar la interpretación.\n\n"
+                "prompt": prompt,
 
-                f"{e}"
+                "respuesta":
 
-            )
+                    "No fue posible generar la interpretación.\n\n"
 
+                    f"{e}"
+
+            }
 
     #=====================================================
     # INFORMACIÓN DEL MOTOR

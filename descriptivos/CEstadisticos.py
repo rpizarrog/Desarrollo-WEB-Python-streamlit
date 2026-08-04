@@ -44,6 +44,7 @@ from statistics import multimode
 
 from scipy import stats
 
+
 #=========================================================
 # CLASE
 #=========================================================
@@ -454,31 +455,168 @@ class Estadisticos:
     #=====================================================
     # HISTOGRAMA
     #=====================================================
-
     def f_generar_histograma(self, figsize=(5,4)):
         """
-        Genera un histograma de la variable.
+        Genera un histograma de la variable
+        mostrando:
+
+        - Media
+        - Mediana
+        - Media ± Desviación estándar
         """
 
         datos = self.f_obtener_datos()
 
-        fig, ax = plt.subplots(
-            figsize=(5,4)
-        )
+        media = datos.mean()
+        mediana = datos.median()
+        desviacion = datos.std()
+
+        fig, ax = plt.subplots(figsize=figsize)
+
+        #----------------------------------------
+        # Histograma
+        #----------------------------------------
 
         ax.hist(
+
             datos,
+
             bins="auto",
-            edgecolor="black"
+
+            edgecolor="black",
+
+            alpha=0.75
+
         )
+
+
+        #----------------------------------------
+        # Media
+        #----------------------------------------
+
+        ax.axvline(
+
+            media,
+
+            color="red",
+
+            linewidth=2,
+
+            label=f"Media = {media:.2f}"
+
+        )
+
+
+        #----------------------------------------
+        # Mediana
+        #----------------------------------------
+
+        ax.axvline(
+
+            mediana,
+
+            color="green",
+
+            linewidth=2,
+
+            label=f"Mediana = {mediana:.2f}"
+
+        )
+
+
+        #----------------------------------------
+        # ± Desviación estándar
+        #----------------------------------------
+
+        ax.axvline(
+
+            media - desviacion,
+
+            color="blue",
+
+            linestyle="--",
+
+            linewidth=2,
+
+            label=f"-1σ = {media-desviacion:.2f}"
+
+        )
+
+
+        ax.axvline(
+
+            media + desviacion,
+
+            color="blue",
+
+            linestyle="--",
+
+            linewidth=2,
+
+            label=f"+1σ = {media+desviacion:.2f}"
+
+        )
+
+
+        #----------------------------------------
+        # Etiquetas
+        #----------------------------------------
 
         ax.set_title(
+
             f"Histograma\n{self.variable}"
+
         )
 
-        ax.set_xlabel(self.variable)
+        ax.set_xlabel(
 
-        ax.set_ylabel("Frecuencia")
+            self.variable
+
+        )
+
+        ax.set_ylabel(
+
+            "Frecuencia"
+
+        )
+
+
+        #----------------------------------------
+        # Leyenda
+        #----------------------------------------
+
+        ax.legend(
+
+            fontsize=8,
+
+            loc="best"
+
+        )
+
+        #-----------------------------------------
+        # Pie de figura
+        #-----------------------------------------
+
+        n = len(datos)
+
+        ax.text(
+
+            0.5,
+
+            -0.18,
+
+            f"n = {n}      μ = {media:.2f}      Mediana = {mediana:.2f}      σ = {desviacion:.2f}",
+
+            transform=ax.transAxes,
+
+            ha="center",
+
+            va="top",
+
+            fontsize=9
+
+        )
+
 
         plt.tight_layout()
 
@@ -501,7 +639,7 @@ class Estadisticos:
 
         ax.boxplot(
             datos,
-            vert=True
+            vert=False
         )
 
         ax.set_title(

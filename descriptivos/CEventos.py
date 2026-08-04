@@ -85,14 +85,14 @@ class Eventos:
             st.session_state["texto_ia"] = ""
 
 
-        if "texto_estudiante" not in st.session_state:
+        # if "texto_estudiante" not in st.session_state:
+        #
+        #    st.session_state["texto_estudiante"] = ""
 
-            st.session_state["texto_estudiante"] = ""
 
+        if "prompt" not in st.session_state:
 
-        if "evaluacion" not in st.session_state:
-
-            st.session_state["evaluacion"] = ""
+            st.session_state["prompt_ia"] = ""
 
 
         if "datos_cargados" not in st.session_state:
@@ -165,23 +165,16 @@ class Eventos:
         # Contexto
         #---------------------------------------------
 
-        contexto = st.text_area(
-
-            "Contexto",
-
-            height=120,
-
-            placeholder=
-            "Ejemplo: Promedios finales de estudiantes universitarios."
-
-        )
-
+        contexto = st.text_area(f"¿De qué se trata la variable de estudio? {variable}",
+                                height=120,
+                                placeholder=(
+                        "Por ejemplo: Edad de pacientes, Temperatura máxima diaria, "
+                        "Ventas mensuales, Tiempo de espera, Nivel de glucosa, "
+                        "Promedio final de estudiantes, entre otras." ))
 
         self.estad.f_contexto(
 
-            contexto
-
-        )
+            contexto)
 
 
         st.divider()
@@ -306,20 +299,46 @@ class Eventos:
 
             )
 
+            #-------------------------------
+            # Gráficas
+            #-------------------------------
+            # Genear los graficos
+            histograma = self.estad.f_generar_histograma() 
+            caja = self.estad.f_generar_caja()             
+            qqplot = self.estad.f_generar_qqplot()
+
+            graficas = [
+
+                {
+                    "nombre": "Histograma",
+                    "figura": histograma
+                },
+
+                {
+                    "nombre": "Diagrama de caja",
+                    "figura": caja
+                },
+
+                {
+                    "nombre": "QQPlot",
+                    "figura": qqplot
+                }]
 
             #-------------------------------
             # IA
             #-------------------------------
 
-            st.session_state["texto_ia"] = (
+            resultado = self.motorIA.f_generar_interpretacion(
 
-                self.motorIA.f_generar_interpretacion(
+                estadisticos,
 
-                    estadisticos
-
-                )
+                graficas
 
             )
+            st.session_state["texto_ia"] = resultado["respuesta"]
+
+            st.session_state["prompt_ia"] = resultado["prompt"]
+
     #=====================================================
     # COLUMNA CENTRAL
     #=====================================================
@@ -372,21 +391,26 @@ class Eventos:
 
         col1, col2, col3 = st.columns(3)
 
+        # Genear los graficos
+        histograma = self.estad.f_generar_histograma() 
+        caja = self.estad.f_generar_caja()             
+        qqplot = self.estad.f_generar_qqplot()
+
         with col1:
 
             st.pyplot(
 
-                self.estad.f_generar_histograma(),
+                histograma,
 
                 use_container_width=True
 
-            )
+            )           
 
         with col2:
 
             st.pyplot(
 
-                self.estad.f_generar_caja(),
+                caja,
 
                 use_container_width=True
 
@@ -396,7 +420,7 @@ class Eventos:
 
             st.pyplot(
 
-                self.estad.f_generar_qqplot(),
+                qqplot,
 
                 use_container_width=True
 
@@ -409,31 +433,14 @@ class Eventos:
 
         st.subheader("Interpretaciones")
 
-        c1, c2, c3 = st.columns(3)
-
-
-        #---------------------------------------------
-        # ESTUDIANTE
-        #---------------------------------------------
-
-        with c1:
-
-            st.text_area(
-
-                "Interpretación del estudiante",
-
-                key="texto_estudiante",
-
-                height=260
-
-            )
+        c1, c2 = st.columns(2)
 
 
         #---------------------------------------------
         # SISTEMA EXPERTO
         #---------------------------------------------
 
-        with c2:
+        with c1:
 
             st.text_area(
 
@@ -441,7 +448,7 @@ class Eventos:
 
                 value=st.session_state["texto_reglas"],
 
-                height=260,
+                height=350,
 
                 disabled=True
 
@@ -452,7 +459,7 @@ class Eventos:
         # IA
         #---------------------------------------------
 
-        with c3:
+        with c2:
 
             st.text_area(
 
@@ -460,29 +467,39 @@ class Eventos:
 
                 value=st.session_state["texto_ia"],
 
-                height=260,
+                height=350,
 
                 disabled=True
+
+            )
+        
+        with st.expander("Prompt utilizado por la IA",
+                            expanded=False):
+
+            st.code(
+
+                st.session_state["prompt_ia"],
+
+                language="text"
 
             )
 
 
         #=================================================
-        # EVALUACIÓN
+        # PROMPT
         #=================================================
 
-        st.subheader("Evaluación")
+        # st.subheader("Prompt")
 
-        st.text_area(
+        # st.text_area(
+        #     "Prompt",
 
-            "",
+        #    value=st.session_state["prompt_ia"],
 
-            value=st.session_state["evaluacion"],
+        #    height=180,
 
-            height=180,
-
-            disabled=True
-        )
+        #    disabled=True
+        #)
     #=====================================================
     # COLUMNA DERECHA
     #=====================================================
@@ -717,8 +734,7 @@ class Eventos:
         )
 
         st.caption(
-            "Sistema Experto e Inteligencia Artificial para apoyar "
-            "la interpretación de estadísticos descriptivos."
+            "Exploración e interpretación de datos de una variable cuantitativa mediante Sistema Experto e Inteligencia Artificial."
         )
 
 
