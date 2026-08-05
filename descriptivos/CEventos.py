@@ -39,6 +39,7 @@ from CInterpretador import Interpretador
 
 from CMotorIA import MotorIA
 
+from CReporte import Reporte
 
 #=========================================================
 # CLASE
@@ -62,6 +63,8 @@ class Eventos:
         self.interpretador = Interpretador()
 
         self.motorIA = None
+
+        self.reporte = Reporte()
 
 
     #=====================================================
@@ -134,43 +137,43 @@ class Eventos:
 
         )
 
-
         st.session_state["datos_cargados"] = True
-
-
+   
         #---------------------------------------------
         # Variable
         #---------------------------------------------
 
-        variables = self.estad.f_obtener_variables()
-
+        variables = self.estad.f_obtener_variables() # solo las variables numericas
 
         variable = st.selectbox(
-
             "Variable cuantitativa",
-
-            variables
-
+            variables,
+            index=0
         )
 
 
-        self.estad.f_seleccionar_variable(
+        self.estad.f_seleccionar_variable(variable) # La variable seleccionada de selectbox
 
-            variable
 
-        )
+        # Lineas repetidas cada que se carga datos o selecciona variables o click en boton analisis
+        self.f_actualizar_estadisticos()
+        estadisticos = st.session_state["estadisticos"]
+        if variable != st.session_state.get("variable_anterior"):
+            self.f_limpiar_interpretaciones()
+            st.session_state["variable_anterior"] = variable
 
 
         #---------------------------------------------
         # Contexto
         #---------------------------------------------
-
+        # que sea editable tal vez 
         contexto = st.text_area(f"¿De qué se trata la variable de estudio? {variable}",
                                 height=120,
                                 placeholder=(
                         "Por ejemplo: Edad de pacientes, Temperatura máxima diaria, "
                         "Ventas mensuales, Tiempo de espera, Nivel de glucosa, "
-                        "Promedio final de estudiantes, entre otras." ))
+                        "Promedio final de estudiantes, entre otras." ),
+                        disabled=False)
 
         self.estad.f_contexto(
 
@@ -261,29 +264,12 @@ class Eventos:
             type="primary"
 
         )
-
+       
 
         if analizar:
-
-            #-------------------------------
-            # Estadísticos
-            #-------------------------------
-
-            estadisticos = self.estad.f_calcular_estadisticos()
-
-
-            normalidad = self.estad.f_prueba_shapiro()
-
-
-            estadisticos["normal"] = normalidad["normal"]
-
-            estadisticos["pvalor"] = normalidad["pvalor"]
-
-            estadisticos["prueba"] = normalidad["prueba"]
-
-
-            st.session_state["estadisticos"] = estadisticos
-
+            # Lineas repetidas cada que se carga datos o selecciona variables o click en boton analisis
+            self.f_actualizar_estadisticos()
+            estadisticos = st.session_state["estadisticos"]
 
             #-------------------------------
             # Sistema Experto
@@ -323,6 +309,12 @@ class Eventos:
                     "nombre": "QQPlot",
                     "figura": qqplot
                 }]
+
+            #-----------------------------------------
+            # Guardar gráficas
+            #-----------------------------------------
+
+            st.session_state["graficas"] = graficas
 
             #-------------------------------
             # IA
@@ -382,7 +374,6 @@ class Eventos:
 
         )
 
-
         #=================================================
         # GRÁFICAS
         #=================================================
@@ -426,7 +417,6 @@ class Eventos:
 
             )
 
-
         #=================================================
         # INTERPRETACIONES
         #=================================================
@@ -435,12 +425,35 @@ class Eventos:
 
         c1, c2 = st.columns(2)
 
-
         #---------------------------------------------
         # SISTEMA EXPERTO
         #---------------------------------------------
 
         with c1:
+
+            #-----------------------------------------
+            # Botón Reporte
+            #-----------------------------------------
+
+            ver_reporte_experto = False
+
+            if st.session_state["texto_reglas"] != "":
+
+                ver_reporte_experto = st.button(
+
+                    "📖 Reporte",
+
+                    key="reporte_experto",
+
+                    use_container_width=True,
+
+                    help="Visualizar reporte académico"
+
+                )
+
+            #-----------------------------------------
+            # Interpretación
+            #-----------------------------------------
 
             st.text_area(
 
@@ -454,12 +467,47 @@ class Eventos:
 
             )
 
+            #-----------------------------------------
+            # Reporte
+            #-----------------------------------------
+
+            if ver_reporte_experto:
+
+                self.reporte.f_visualizar_reporte(
+
+                    titulo="Interpretación mediante Sistema Experto",
+
+                    objetivo="",
+
+                    estadisticos=st.session_state["estadisticos"],
+
+                    interpretacion=st.session_state["texto_reglas"],
+
+                    graficas=st.session_state["graficas"]
+
+                )
 
         #---------------------------------------------
         # IA
         #---------------------------------------------
 
         with c2:
+
+            ver_reporte_ia = False
+
+            if st.session_state["texto_ia"] != "":
+
+                ver_reporte_ia = st.button(
+
+                    "📖 Reporte",
+
+                    key="reporte_ia",
+
+                    use_container_width=True,
+
+                    help="Visualizar reporte académico"
+
+                )
 
             st.text_area(
 
@@ -472,9 +520,34 @@ class Eventos:
                 disabled=True
 
             )
-        
-        with st.expander("Prompt utilizado por la IA",
-                            expanded=False):
+
+            if ver_reporte_ia:
+
+                self.reporte.f_visualizar_reporte(
+
+                    titulo="Interpretación mediante Inteligencia Artificial",
+
+                    objetivo="",
+
+                    estadisticos=st.session_state["estadisticos"],
+
+                    interpretacion=st.session_state["texto_ia"],
+
+                    graficas=st.session_state["graficas"]
+
+                )
+
+        #---------------------------------------------
+        # Prompt IA
+        #---------------------------------------------
+
+        with st.expander(
+
+            "Prompt utilizado por la IA",
+
+            expanded=False
+
+        ):
 
             st.code(
 
@@ -485,21 +558,6 @@ class Eventos:
             )
 
 
-        #=================================================
-        # PROMPT
-        #=================================================
-
-        # st.subheader("Prompt")
-
-        # st.text_area(
-        #     "Prompt",
-
-        #    value=st.session_state["prompt_ia"],
-
-        #    height=180,
-
-        #    disabled=True
-        #)
     #=====================================================
     # COLUMNA DERECHA
     #=====================================================
@@ -520,13 +578,8 @@ class Eventos:
 
             return
 
-
         est = st.session_state["estadisticos"]
 
-
-        #=================================================
-        # ESTADÍSTICOS
-        #=================================================
 
         st.subheader("Estadísticos")
 
@@ -708,6 +761,50 @@ class Eventos:
                 "valores atípicos."
 
             )
+
+
+    #=====================================================
+    # ACTUALIZAR ESTADÍSTICOS
+    #=====================================================
+
+    def f_actualizar_estadisticos(self):
+        """
+        Calcula y almacena los estadísticos descriptivos.
+        """
+
+        estadisticos = self.estad.f_calcular_estadisticos()
+
+        # Si aún no hay variable seleccionada
+        if estadisticos is None:
+            return
+
+        normalidad = self.estad.f_prueba_shapiro()
+
+        # Si aún no puede calcular Shapiro
+        if normalidad is None:
+            return
+
+        estadisticos["normal"] = normalidad["normal"]
+        estadisticos["pvalor"] = normalidad["pvalor"]
+        estadisticos["prueba"] = normalidad["prueba"]
+
+        st.session_state["estadisticos"] = estadisticos
+
+    #=====================================================
+    # LIMPIAR INTERPRETACIONES
+    #=====================================================
+
+    def f_limpiar_interpretaciones(self):
+        """
+        Elimina las interpretaciones almacenadas cuando
+        cambia la variable de estudio.
+        """
+
+        st.session_state["texto_reglas"] = ""
+
+        st.session_state["texto_ia"] = ""
+
+        st.session_state["prompt_ia"] = ""
 
     #=====================================================
     # INTERFAZ

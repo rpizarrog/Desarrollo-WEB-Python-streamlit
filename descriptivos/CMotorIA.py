@@ -175,6 +175,29 @@ class MotorIA:
             f"Mediana: {contexto['mediana']:.2f}"
         )
 
+        # A que problema a dado la moda
+        #-----------------------------------------
+        # Moda
+        #-----------------------------------------
+
+        modas = contexto["moda"]
+
+        if len(modas) == 1:
+
+            moda = f"{modas[0]:.2f}"
+
+        elif len(modas) == 2:
+
+            moda = f"{modas[0]:.2f}, {modas[1]:.2f}"
+
+        else:
+
+            moda = "Multimodal"
+
+        lineas.append(
+            f"Moda: {moda}"
+        )
+
         lineas.append(
             f"Desviación estándar: {contexto['desviacion']:.2f}"
         )
@@ -258,7 +281,23 @@ class MotorIA:
                 "Además de los estadísticos descriptivos recibirás "
                 "una o varias gráficas de la variable."
             )
+            lineas.append("")
 
+            lineas.append("Además de los estadísticos descriptivos, el análisis incluye las siguientes " 
+            "representaciones gráficas de la variable de estudio: ") 
+
+            lineas.append("")
+
+            lineas.append("Cuando estas imágenes estén disponibles, integra la información visual con los " 
+            "estadísticos descriptivos antes de emitir conclusiones." 
+            "Si las imágenes no están disponibles, infiere el comportamiento esperado de las " 
+            "representaciones gráficas a partir de los estadísticos descriptivos proporcionados, " 
+            "especialmente utilizando las medidas de tendencia central, dispersión, asimetría, curtosis, " 
+            "valores atípicos y el resultado de la prueba de normalidad. " 
+            "En este caso, indica claramente que las conclusiones visuales son inferidas y " 
+            "no observadas directamente.")
+
+            lineas.append("")
             lineas.append(
                 "Integra la información numérica con la información "
                 "visual antes de emitir conclusiones."

@@ -295,7 +295,7 @@ class Estadisticos:
 
         mediana = np.median(datos)
 
-        moda = multimode(datos)
+        moda = self.f_calcular_moda()
 
         #---------------------------------------------
         # Dispersión
@@ -417,7 +417,27 @@ class Estadisticos:
 
         return estadisticos
 
-        #=====================================================
+    def f_calcular_moda(self):
+        """
+        Calcula la(s) moda(s).
+        """
+
+        datos = self.f_obtener_datos()
+
+        if datos is None:
+
+            return []
+
+        moda = [
+
+            round(float(x), 2)
+
+            for x in datos.mode().tolist()
+
+        ]
+
+        return moda
+    #=====================================================
     # PRUEBA DE NORMALIDAD
     #=====================================================
 
@@ -707,3 +727,4 @@ class Estadisticos:
         }
 
         return figuras
+
