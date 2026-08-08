@@ -327,12 +327,4 @@ class Preparador:
 
 if __name__ == "__main__":
 
-    preparador = Preparador()
-
-    preparador.f_preparar(
-
-        "datos/Muebleria.csv",
-
-        "datos/Muebleria_limpio_desdeAPP.csv"
-
-    )
+    pass
