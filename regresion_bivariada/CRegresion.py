@@ -736,12 +736,7 @@ class Regresion:
 
         elif self.tipo.lower() == "potencial":
 
-            a = np.exp(
-
-                coef["intercepto"]
-
-            )
-
+            a = coef["intercepto"]
             b = coef["b1"]
 
             ecuacion = (
@@ -749,6 +744,7 @@ class Regresion:
                 f"ŷ = {a:.4f}·x^{b:.4f}"
 
             )
+            
 
         else:
 
